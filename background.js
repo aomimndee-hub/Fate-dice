@@ -3,11 +3,12 @@ import OBR from "https://cdn.jsdelivr.net/npm/@owlbear-rodeo/sdk@3.1.0/+esm";
 const NS = "com.fatecore.dice";
 const BASE = new URL(".", location.href).href;
 const SHOW_MS = 8000;                // เวลาที่หน้าต่างเต๋าค้างอยู่
-const DEBUG = false;                 // ตั้งเป็น true เพื่อดูแถบ debug
+const DEBUG = true;                  // ตั้งเป็น false เมื่อใช้งานได้แล้ว
 const seen = new Map();              // roll id -> ผลเต๋าล่าสุด (กัน Invoke ทำให้เต๋ากลิ้งซ้ำ)
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const dbg = m => { if (DEBUG) OBR.notification.show("[debug] " + m, "INFO"); };
 
+let slog = [], stimer = null, noSig = null;
 let current = null, timer = null, counter = 0, queue = Promise.resolve();
 
 async function closeCurrent() {
@@ -23,6 +24,7 @@ async function show(r) {
   await closeCurrent();
   const id = `${NS}/screen-roll-${++counter}`;   // ID ใหม่ทุกครั้ง
   const q = new URLSearchParams({ d: r.dice.join(), t: r.total, n: r.who || "", c: r.color || "" });
+  if (DEBUG) q.set("rep", "1");
   try {
     await OBR.modal.open({
       id,
@@ -34,6 +36,7 @@ async function show(r) {
     });
     current = id;
     dbg("เปิดหน้าต่างเต๋าแล้ว");
+    if (DEBUG) noSig = setTimeout(() => dbg("หน้าเต๋าไม่ส่งสัญญาณใน 5 วิ"), 5000);
     timer = setTimeout(() => { if (current === id) closeCurrent(); }, SHOW_MS);
   } catch (e) {
     console.error("[Fate Dice] overlay error", e);
@@ -43,6 +46,10 @@ async function show(r) {
 
 OBR.onReady(() => {
   dbg("background ทำงานแล้ว");
+  OBR.broadcast.onMessage(NS + "/status", ev => {
+    clearTimeout(noSig); slog.push(ev.data.t);
+    clearTimeout(stimer); stimer = setTimeout(() => { dbg(slog.join(" | ")); slog = []; }, 900);
+  });
   OBR.broadcast.onMessage(NS + "/roll", ev => {
     const r = ev.data, key = r.dice.join();
     if (seen.get(r.id) === key) return;   // แค่ Invoke ไม่ต้องกลิ้งใหม่
