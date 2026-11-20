@@ -28,6 +28,8 @@ let party = [];
 let history = [];
 let mine = null;
 let sheet = { fp: 3, refresh: 3, hc: "", trouble: "", aspects: "", phys: [0, 0], ment: [0, 0], cons: { mild: "", mod: "", sev: "" } };
+let dmode = "3d";
+try { dmode = localStorage.getItem(NS + "/dmode") || "3d"; } catch (e) {}
 const st = { action: "overcome", skill: 2, label: "", opp: "2", free: 0, paid: 0, mods: [] };
 
 /* ---------- ลูกเต๋า ---------- */
@@ -66,6 +68,8 @@ function spendFp(n) {
 function buildRoll() {
   const skills = []; for (let n = 8; n >= -2; n--) skills.push(`<option value="${n}" ${n === 2 ? "selected" : ""}>${sgn(n)} ${ladName(n)}</option>`);
   $("#roll").innerHTML = `
+  <label>รูปแบบลูกเต๋า</label>
+  <select id="dmode"><option value="2d">2D (แบน)</option><option value="3d">3D (ลูกบาศก์)</option></select>
   <label>แอ็กชัน</label>
   <select id="act">${Object.entries(ACT).map(([k, v]) => `<option value="${k}">${v.name} (${v.th})</option>`).join("")}</select>
   <div class="row">
@@ -88,7 +92,7 @@ function buildRoll() {
   <div class="odds" id="odds"></div>
   <button class="btn big" id="go">ทอด 4dF</button>
   <div id="last" style="margin-top:14px"></div>`;
-  chips(); odds(); renderLast();
+  $("#dmode").value = dmode; chips(); odds(); renderLast();
 }
 function chips() {
   $("#mchips").innerHTML = st.mods.map((m, i) => `<span class="chip ${m.v >= 0 ? "p" : "m"} ${m.on ? "" : "off"}" data-i="${i}">${esc(m.n)} ${sgn(m.v)}<i data-x="${i}">✕</i></span>`).join("");
@@ -121,9 +125,35 @@ function post(kind) {
   send(r);
 }
 
+/* ---------- ลูกเต๋า 2D / 3D ---------- */
+const FACE_OF = { 1: ["front", "top"], "-1": ["back", "bottom"], 0: ["right", "left"] };
+const SHOW = { front: [0, 0], back: [0, -180], right: [0, -90], left: [0, 90], top: [-90, 0], bottom: [90, 0] };
+const FACE_T = { front: "rotateY(0deg)", back: "rotateY(180deg)", right: "rotateY(90deg)", left: "rotateY(-90deg)", top: "rotateX(90deg)", bottom: "rotateX(-90deg)" };
+const SYM = d => (d > 0 ? "+" : d < 0 ? "−" : "○");
+const CLS = d => (d > 0 ? "p" : d < 0 ? "m" : "z");
+function die(d, anim) {
+  if (dmode !== "3d") return `<div class="die ${CLS(d)} ${anim ? "spin" : ""}">${SYM(d)}</div>`;
+  const pick = FACE_OF[d][rnd(2)];
+  const [x, y] = SHOW[pick];
+  const faces = Object.entries(FACE_OF).flatMap(([v, names]) => names.map(n => `<div class="face ${CLS(+v)}" style="transform:${FACE_T[n]} translateZ(22px)">${SYM(+v)}</div>`)).join("");
+  return `<div class="scene"><div class="tilt"><div class="cube" data-x="${x}" data-y="${y}" data-a="${anim ? 1 : 0}" style="transform:rotateX(${x}deg) rotateY(${y}deg)">${faces}</div></div></div>`;
+}
+function animate3d() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  document.querySelectorAll('.cube[data-a="1"]').forEach(c => {
+    const x = +c.dataset.x, y = +c.dataset.y;
+    c.dataset.a = "0";
+    c.style.transition = "none";
+    c.style.transform = `rotateX(${x - 360 * (2 + rnd(2))}deg) rotateY(${y - 360 * (2 + rnd(2))}deg)`;
+    c.getBoundingClientRect();
+    c.style.transition = `transform ${0.8 + rnd(5) / 10}s cubic-bezier(.15,.7,.2,1)`;
+    c.style.transform = `rotateX(${x}deg) rotateY(${y}deg)`;
+  });
+}
+
 /* ---------- การ์ดผลทอด ---------- */
-function card(r, acts) {
-  const dice = r.dice.map(d => `<div class="die ${d > 0 ? "p" : d < 0 ? "m" : "z"} spin">${d > 0 ? "+" : d < 0 ? "−" : "○"}</div>`).join("");
+function card(r, acts, anim) {
+  const dice = r.dice.map(d => die(d, anim)).join("");
   const parts = [`${esc(r.label) || ACT[r.action].name} ${sgn(r.skill)} ${ladName(r.skill)}`, ...r.mods.map(m => `${esc(m.n)} ${sgn(m.v)}`)];
   if (r.free + r.paid) parts.push(`invoke ×${r.free + r.paid} +${2 * (r.free + r.paid)}`);
   const res = r.res ? `<div class="${r.res === "fail" ? "bad" : "good"}"><b>${sgn(r.shifts)} shifts</b> — ${OUT[r.action][r.res]}</div>` : "";
@@ -134,14 +164,16 @@ function card(r, acts) {
     <div class="mu">${parts.join(" · ")} = ${sgn(r.total)} ${ladName(r.total)}</div>${res}
     ${acts ? `<div class="acts"><button class="btn sm" data-p="invFree">+2 Invoke ฟรี</button><button class="btn sm" data-p="invFp">+2 Invoke <span class="fp">(FP)</span></button><button class="btn sm" data-p="rrFree">Reroll ฟรี</button><button class="btn sm" data-p="rrFp">Reroll <span class="fp">(FP)</span></button></div>` : ""}</div>`;
 }
-function renderLast() { const el = $("#last"); if (el) el.innerHTML = mine ? card(mine, true) : `<div class="mu">ยังไม่ได้ทอด</div>`; }
-function renderLog() { $("#log").innerHTML = history.length ? history.map(r => card(r, false)).join("") : `<div class="mu">ยังไม่มีการทอดในห้องนี้ (ประวัติเริ่มนับเมื่อคุณเปิด extension)</div>`; }
+function renderLast(anim) { const el = $("#last"); if (el) el.innerHTML = mine ? card(mine, true, anim) : `<div class="mu">ยังไม่ได้ทอด</div>`; animate3d(); }
+function renderLog(animId) { $("#log").innerHTML = history.length ? history.map(r => card(r, false, r.id === animId)).join("") : `<div class="mu">ยังไม่มีการทอดในห้องนี้ (ประวัติเริ่มนับเมื่อคุณเปิด extension)</div>`; animate3d(); }
 
 function onRoll(r) {
-  const isNew = !history.some(x => x.id === r.id);
+  const prev = history.find(x => x.id === r.id);
+  const isNew = !prev;
+  const rolled = !prev || prev.dice.join() !== r.dice.join();
   history = [r, ...history.filter(x => x.id !== r.id)].slice(0, 50);
   if (r.pid === me.id) mine = r;
-  renderLast(); renderLog();
+  renderLast(rolled && r.pid === me.id); renderLog(rolled ? r.id : null);
   const s = r.dice.map(d => (d > 0 ? "+" : d < 0 ? "−" : "○")).join(" ");
   OBR.notification.show(`${r.who}: [${s}] = ${sgn(r.total)} ${ladName(r.total)}${r.res ? ` · ${sgn(r.shifts)} shifts` : ""}${isNew ? "" : " (อัปเดต)"}`, r.res === "fail" ? "WARNING" : r.res ? "SUCCESS" : "DEFAULT");
 }
@@ -198,6 +230,7 @@ function bind() {
     const id = e.target.id; if (!id) return;
     if (id === "act") st.action = e.target.value;
     if (id === "lbl") st.label = e.target.value;
+    if (id === "dmode") { dmode = e.target.value; try { localStorage.setItem(NS + "/dmode", dmode); } catch (e2) {} renderLast(); renderLog(); }
     if (id === "skill") st.skill = +e.target.value;
     if (["opp", "free", "paid"].includes(id)) st[id] = e.target.value;
     odds();
