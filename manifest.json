@@ -1,13 +1,13 @@
 {
   "name": "Fate Core Dice",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "manifest_version": 1,
-  "description": "ทอดเต๋า 4dF พร้อม modifier, invoke, Fate Points, ตัวละคร และประวัติการทอดแบบแชร์ทั้งห้อง",
-  "author": "You",
+  "description": "Fate Core 4dF dice with modifiers, invokes, Fate Points, character sheet and shared roll log",
+  "author": "aomimndee-hub",
   "action": {
     "title": "Fate Dice",
-    "icon": "/icon.svg",
-    "popover": "/index.html",
+    "icon": "https://aomimndee-hub.github.io/Fate-dice/icon.svg",
+    "popover": "https://aomimndee-hub.github.io/Fate-dice/index.html",
     "width": 400,
     "height": 660
   }
