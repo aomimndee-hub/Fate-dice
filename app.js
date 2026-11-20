@@ -93,7 +93,8 @@ function buildRoll() {
   <div class="chips" id="mchips"></div>
   <div class="odds" id="odds"></div>
   <button class="btn big" id="go">ทอด 4dF</button>
-  <div id="last" style="margin-top:14px"></div>`;
+  <div id="last" style="margin-top:14px"></div>
+  <details style="margin-top:14px"><summary class="mu">Debug log (เต๋าบนหน้าจอ)</summary><pre id="dbg" class="mu" style="white-space:pre-wrap;margin:6px 0"></pre></details>`;
   $("#dmode").value = dmode; try { $("#scr").value = localStorage.getItem(NS + "/screen") === "0" ? "0" : "1"; } catch (e) {} chips(); odds(); renderLast();
 }
 function chips() {
@@ -290,4 +291,5 @@ OBR.onReady(async () => {
   OBR.party.onChange(p => { party = p; renderParty(); });
 
   buildRoll(); renderSheet(); renderLog(); renderParty(); bind();
+  setInterval(() => { const el = $("#dbg"); if (!el) return; try { el.textContent = JSON.parse(localStorage.getItem(NS + "/dbg") || "[]").join("\n") || "(ยังไม่มีข้อมูล)"; } catch (e) { el.textContent = "อ่านล็อกไม่ได้: " + e; } }, 1000);
 });
