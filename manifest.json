@@ -1,0 +1,14 @@
+{
+  "name": "Fate Core Dice",
+  "version": "1.0.0",
+  "manifest_version": 1,
+  "description": "ทอดเต๋า 4dF พร้อม modifier, invoke, Fate Points, ตัวละคร และประวัติการทอดแบบแชร์ทั้งห้อง",
+  "author": "You",
+  "action": {
+    "title": "Fate Dice",
+    "icon": "/icon.svg",
+    "popover": "/index.html",
+    "width": 400,
+    "height": 660
+  }
+}

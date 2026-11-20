@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fate Core Dice</title>
+<style>
+:root{--bg:#171b26;--card:#212737;--line:#323a50;--tx:#e8ebf4;--mu:#97a0b8;--plus:#46d19b;--minus:#f0697b;--fp:#f2b84b;--ac:#7c8cff}
+:root.light{--bg:#f3f4f9;--card:#fff;--line:#d5d9e6;--tx:#1b2030;--mu:#5d667f;--plus:#0f9d6a;--minus:#d13a50;--fp:#b97d00;--ac:#4a5bd8}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,"Sarabun","Noto Sans Thai",sans-serif;display:flex;flex-direction:column}
+nav{display:flex;border-bottom:1px solid var(--line)}
+nav button{flex:1;padding:10px 4px;background:none;border:0;border-bottom:2px solid transparent;color:var(--mu);font:inherit;cursor:pointer}
+nav button.on{color:var(--tx);border-color:var(--ac)}
+main{flex:1;overflow:auto;padding:12px}
+section{display:none}section.on{display:block}
+label{display:block;color:var(--mu);font-size:12px;margin:10px 0 3px}
+input,select,textarea,button{font:inherit;color:var(--tx)}
+input,select,textarea{width:100%;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+textarea{resize:vertical;min-height:54px}
+.row{display:flex;gap:8px;align-items:flex-end}.row>*{flex:1}.row>.fix{flex:none}
+.btn{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer}
+.btn:hover{border-color:var(--ac)}
+.btn.big{width:100%;margin-top:14px;padding:12px;font-size:16px;font-weight:600;background:var(--ac);border-color:var(--ac);color:#fff}
+.btn.sm{padding:3px 8px;font-size:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{border:1px solid var(--line);border-radius:99px;padding:2px 10px;cursor:pointer;background:var(--card);user-select:none}
+.chip.off{opacity:.4;text-decoration:line-through}
+.chip.p{border-color:var(--plus)}.chip.m{border-color:var(--minus)}
+.chip i{font-style:normal;color:var(--mu);margin-left:6px}
+.odds{color:var(--mu);font-size:12px;margin-top:8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px}
+.dice{display:flex;gap:6px;margin:6px 0}
+.die{width:38px;height:38px;border-radius:8px;display:grid;place-items:center;font-size:22px;font-weight:700;border:2px solid var(--line)}
+.die.p{color:var(--plus);border-color:var(--plus)}.die.m{color:var(--minus);border-color:var(--minus)}.die.z{color:var(--mu)}
+.die.spin{animation:sp .35s ease-out}@keyframes sp{from{transform:rotate(-120deg) scale(.4);opacity:0}}
+@media(prefers-reduced-motion:reduce){.die.spin{animation:none}}
+.tot{font-size:26px;font-weight:700}
+.who{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+.mu{color:var(--mu);font-size:12px}
+.good{color:var(--plus)}.bad{color:var(--minus)}.fp{color:var(--fp)}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.boxes{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.box{width:28px;height:28px;border:2px solid var(--line);border-radius:5px;background:none;cursor:pointer}
+.box.x{background:var(--minus);border-color:var(--minus)}
+.fpn{font-size:30px;font-weight:700;color:var(--fp);min-width:44px;text-align:center}
+h3{margin:14px 0 4px;font-size:13px;color:var(--mu);font-weight:600}
+</style>
+</head>
+<body>
+<nav>
+  <button data-t="roll" class="on">ทอด</button>
+  <button data-t="log">ประวัติ</button>
+  <button data-t="sheet">ตัวละคร</button>
+  <button data-t="party">ปาร์ตี้</button>
+</nav>
+<main>
+  <section id="roll" class="on"></section>
+  <section id="log"></section>
+  <section id="sheet"></section>
+  <section id="party"></section>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>
