@@ -47,6 +47,11 @@ textarea{resize:vertical;min-height:54px}
 .box.x{background:var(--minus);border-color:var(--minus)}
 .fpn{font-size:30px;font-weight:700;color:var(--fp);min-width:44px;text-align:center}
 h3{margin:14px 0 4px;font-size:13px;color:var(--mu);font-weight:600}
+.scene{width:44px;height:44px;perspective:320px;margin:0 6px 0 2px}
+.tilt{width:100%;height:100%;transform-style:preserve-3d;transform:rotateX(-20deg) rotateY(24deg)}
+.cube{width:100%;height:100%;position:relative;transform-style:preserve-3d}
+.face{position:absolute;inset:0;display:grid;place-items:center;font-size:24px;font-weight:700;border:2px solid var(--line);border-radius:8px;background:var(--card);backface-visibility:hidden}
+.face.p{color:var(--plus);border-color:var(--plus)}.face.m{color:var(--minus);border-color:var(--minus)}.face.z{color:var(--mu)}
 </style>
 </head>
 <body>
