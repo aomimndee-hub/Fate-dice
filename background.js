@@ -3,7 +3,7 @@ import OBR from "https://cdn.jsdelivr.net/npm/@owlbear-rodeo/sdk@3.1.0/+esm";
 const NS = "com.fatecore.dice";
 const BASE = new URL(".", location.href).href;
 const SHOW_MS = 8000;                // เวลาที่หน้าต่างเต๋าค้างอยู่
-const DEBUG = true;                  // ตั้งเป็น false เมื่อใช้งานได้แล้ว
+const DEBUG = false;                  // ตั้งเป็น false เมื่อใช้งานได้แล้ว
 const seen = new Map();              // roll id -> ผลเต๋าล่าสุด (กัน Invoke ทำให้เต๋ากลิ้งซ้ำ)
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const dbg = m => {
