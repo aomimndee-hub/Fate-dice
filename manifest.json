@@ -4,7 +4,7 @@
   "manifest_version": 1,
   "description": "Fate Core 4dF dice with modifiers, invokes, Fate Points, character sheet and on-screen 3D dice",
   "author": "aomimndee-hub",
-  "background": "https://aomimndee-hub.github.io/Fate-dice/background.html",
+  "background_url": "https://aomimndee-hub.github.io/Fate-dice/background.html",
   "action": {
     "title": "Fate Dice",
     "icon": "https://aomimndee-hub.github.io/Fate-dice/icon.svg",
