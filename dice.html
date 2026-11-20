@@ -192,14 +192,18 @@ async function run() {
     const N = frames[0].length, t0 = performance.now(); let done = false;
     const apply = k => { meshes.forEach((m, i) => { const a = frames[i][k]; m.position.set(a[0], a[1], a[2]); m.quaternion.set(a[3], a[4], a[5], a[6]); }); r.render(scene, cam); };
     if (calm) { apply(N - 1); tagIn(0); return; }
-    const loop = now => {
-      const k = Math.min(N - 1, Math.floor((now - t0) / 1000 * 60));
-      apply(k);
-      if (k >= N - 1) {
-        if (!done) { done = true; rep("จบ"); tagIn(0); fadeAll([r.domElement, tag], 1800); }
-        if (now - t0 > N / 60 * 1000 + 2600) return;
-      }
-      requestAnimationFrame(loop);
+    const loop = () => {
+      try {
+        const now = performance.now();
+        /* กัน k ติดลบ: timestamp ของ rAF อาจเก่ากว่า t0 ทำให้ frames[i][-1] เป็น undefined แล้วลูปพังเงียบๆ */
+        const k = Math.max(0, Math.min(N - 1, Math.floor((now - t0) / 1000 * 60)));
+        apply(k);
+        if (k >= N - 1) {
+          if (!done) { done = true; rep("จบ"); tagIn(0); fadeAll([r.domElement, tag], 1800); }
+          if (now - t0 > N / 60 * 1000 + 2600) return;
+        }
+        requestAnimationFrame(loop);
+      } catch (e) { rep("ERR loop " + e); }
     };
     requestAnimationFrame(loop);
   } catch (e) { r.domElement.remove(); throw e; }
