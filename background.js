@@ -7,6 +7,7 @@ const seen = new Map(); // roll id -> ผลเต๋าล่าสุด (ก�
 let timer;
 
 OBR.onReady(() => {
+  console.log("[Fate Dice] background ready");
   OBR.broadcast.onMessage(NS + "/roll", async ev => {
     const r = ev.data;
     const key = r.dice.join();
@@ -18,8 +19,8 @@ OBR.onReady(() => {
 
     const q = new URLSearchParams({ d: key, t: r.total, n: r.who || "", c: r.color || "" });
     clearTimeout(timer);
+    try { await OBR.modal.close(MODAL_ID); } catch (e) { /* ยังไม่มีหน้าต่างเปิดอยู่ ไม่เป็นไร */ }
     try {
-      await OBR.modal.close(MODAL_ID);
       await OBR.modal.open({
         id: MODAL_ID,
         url: BASE + "dice.html?" + q,
@@ -28,7 +29,10 @@ OBR.onReady(() => {
         hidePaper: true,
         disablePointerEvents: true,
       });
-      timer = setTimeout(() => OBR.modal.close(MODAL_ID), 6500);
-    } catch (e) { console.error("dice overlay", e); }
+      timer = setTimeout(() => OBR.modal.close(MODAL_ID).catch(() => {}), 6500);
+    } catch (e) {
+      console.error("[Fate Dice] overlay error", e);
+      OBR.notification.show("เต๋าบนหน้าจอเปิดไม่ได้: " + (e?.message || e), "ERROR");
+    }
   });
 });
