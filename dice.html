@@ -28,6 +28,14 @@ const rf = (a, b) => a + Math.random() * (b - a);
 const DBG = q.has("debug");
 if (DBG) document.documentElement.style.background = "#2b3045";
 const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+/* รายงานสถานะกลับไปให้ background (ใช้ตอน debug: ?rep=1) */
+const rq = []; let rsend = null;
+function rep(t) { rq.push(Math.round(performance.now()) + "ms " + t); if (rsend) rsend(); }
+if (q.has("rep")) import("https://cdn.jsdelivr.net/npm/@owlbear-rodeo/sdk@3.1.0/+esm").then(({ default: OBR }) => OBR.onReady(() => {
+  rsend = () => { while (rq.length) OBR.broadcast.sendMessage("com.fatecore.dice/status", { t: rq.shift() }, { destination: "LOCAL" }); };
+  rsend();
+})).catch(() => {});
+rep("เริ่ม " + innerWidth + "x" + innerHeight);
 const tag = document.getElementById("tag");
 function tagIn(delay) {
   document.getElementById("dot").style.background = /^#[0-9a-f]{3,8}$/i.test(color) ? color : "#888";
@@ -88,6 +96,7 @@ async function cssDice() {
 async function run() {
   const [THREE, CANNON] = await Promise.all([import("three"), import("cannon-es")]);
   const [W, H] = await stableSize(), n = dice.length;
+  rep("ขนาดนิ่ง " + W + "x" + H);
   if (!n) return;
   const S = Math.round(Math.min(Math.max(Math.min(W, H) * 0.1, 56), 100)); // ขนาดเต๋า (px)
   const hz = H / (2 * S), hx = W / (2 * S);                                // ครึ่งจอ หน่วย = 1 ลูกเต๋า
@@ -143,6 +152,7 @@ async function run() {
     }
   });
 
+  rep("จำลองเสร็จ " + frames[0].length + "f");
   /* three.js */
   const tex = (kind, col) => {
     const c = document.createElement("canvas"); c.width = c.height = 128;
@@ -186,7 +196,7 @@ async function run() {
       const k = Math.min(N - 1, Math.floor((now - t0) / 1000 * 60));
       apply(k);
       if (k >= N - 1) {
-        if (!done) { done = true; tagIn(0); fadeAll([r.domElement, tag], 1800); }
+        if (!done) { done = true; rep("จบ"); tagIn(0); fadeAll([r.domElement, tag], 1800); }
         if (now - t0 > N / 60 * 1000 + 2600) return;
       }
       requestAnimationFrame(loop);
@@ -195,6 +205,6 @@ async function run() {
   } catch (e) { r.domElement.remove(); throw e; }
 }
 const note = t => { if (!DBG) return; const m = document.createElement("div"); m.style.cssText = "position:fixed;left:8px;bottom:8px;color:#fff;background:#0008;padding:4px 8px;font:12px monospace;z-index:9"; m.textContent = t; document.body.append(m); };
-run().then(() => note(`dice.html v3: ฟิสิกส์ทำงาน (${innerWidth}x${innerHeight})`)).catch(e => { console.warn("physics dice fallback:", e); note("dice.html v3: ฟิสิกส์ไม่ทำงาน ใช้ CSS แทน → " + e); cssDice(); });
+run().then(() => note(`dice.html v3: ฟิสิกส์ทำงาน (${innerWidth}x${innerHeight})`)).catch(e => { console.warn("physics dice fallback:", e); rep("ERR " + e); note("dice.html v3: ฟิสิกส์ไม่ทำงาน ใช้ CSS แทน → " + e); cssDice(); });
 </script>
 </body></html>
