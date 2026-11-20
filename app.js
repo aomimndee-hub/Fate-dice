@@ -170,8 +170,6 @@ function card(r, acts, anim) {
 function renderLast(anim) { const el = $("#last"); if (el) el.innerHTML = mine ? card(mine, true, anim) : `<div class="mu">ยังไม่ได้ทอด</div>`; animate3d(); }
 function renderLog(animId) { $("#log").innerHTML = history.length ? history.map(r => card(r, false, r.id === animId)).join("") : `<div class="mu">ยังไม่มีการทอดในห้องนี้ (ประวัติเริ่มนับเมื่อคุณเปิด extension)</div>`; animate3d(); }
 
-let rollNoteId = null, rollNoteTimer = null;
-const ROLL_NOTE_MS = 3000;   // เวลาที่ข้อความผลทอดค้างอยู่ (มิลลิวินาที)
 function onRoll(r) {
   const prev = history.find(x => x.id === r.id);
   const isNew = !prev;
@@ -179,14 +177,7 @@ function onRoll(r) {
   history = [r, ...history.filter(x => x.id !== r.id)].slice(0, 50);
   if (r.pid === me.id) mine = r;
   renderLast(rolled && r.pid === me.id); renderLog(rolled ? r.id : null);
-  const s = r.dice.map(d => (d > 0 ? "+" : d < 0 ? "−" : "○")).join(" ");
-  /* ปิดข้อความผลทอดอันเก่าก่อนขึ้นอันใหม่ และให้หายเองใน 3 วิ */
-  if (rollNoteId) OBR.notification.close(rollNoteId).catch(() => {});
-  clearTimeout(rollNoteTimer);
-  OBR.notification.show(`${r.who}: [${s}] = ${sgn(r.total)} ${ladName(r.total)}${r.res ? ` · ${sgn(r.shifts)} shifts` : ""}${isNew ? "" : " (อัปเดต)"}`, r.res === "fail" ? "WARNING" : r.res ? "SUCCESS" : "DEFAULT").then(id => {
-    rollNoteId = id;
-    rollNoteTimer = setTimeout(() => { OBR.notification.close(id).catch(() => {}); if (rollNoteId === id) rollNoteId = null; }, ROLL_NOTE_MS);
-  }).catch(() => {});
+  /* ไม่แสดงข้อความแจ้งผลทอด (ดูผลได้ในแผง Fate Dice และเต๋าบนหน้าจอ) */
 }
 
 /* ---------- แท็บตัวละคร ---------- */
