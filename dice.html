@@ -25,6 +25,8 @@ const LAD = { 8: "Legendary", 7: "Epic", 6: "Fantastic", 5: "Superb", 4: "Great"
 const sgn = n => (n >= 0 ? "+" : "") + n;
 const rnd = n => Math.floor(Math.random() * n);
 const rf = (a, b) => a + Math.random() * (b - a);
+const DBG = q.has("debug");
+if (DBG) document.documentElement.style.background = "#2b3045";
 const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const tag = document.getElementById("tag");
 function tagIn(delay) {
@@ -32,7 +34,7 @@ function tagIn(delay) {
   document.getElementById("txt").textContent = `${name} · ${sgn(total)} ${LAD[total] ?? ""}`.trim();
   if (calm) tag.style.opacity = 1; else tag.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250, delay, fill: "forwards" });
 }
-function fadeAll(els, delay) { if (!calm) els.forEach(e => e.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 600, delay, fill: "forwards" })); }
+function fadeAll(els, delay) { if (!calm && !DBG) els.forEach(e => e.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 600, delay, fill: "forwards" })); }
 
 /* ---------- เวอร์ชันสำรอง: CSS 3D ---------- */
 function cssDice() {
@@ -180,6 +182,7 @@ async function run() {
     requestAnimationFrame(loop);
   } catch (e) { r.domElement.remove(); throw e; }
 }
-run().catch(e => { console.warn("physics dice fallback:", e); cssDice(); });
+const note = t => { if (!DBG) return; const m = document.createElement("div"); m.style.cssText = "position:fixed;left:8px;bottom:8px;color:#fff;background:#0008;padding:4px 8px;font:12px monospace;z-index:9"; m.textContent = t; document.body.append(m); };
+run().then(() => note("dice.html v2: ฟิสิกส์ (three.js) ทำงาน")).catch(e => { console.warn("physics dice fallback:", e); note("dice.html v2: ฟิสิกส์ไม่ทำงาน ใช้ CSS แทน → " + e); cssDice(); });
 </script>
 </body></html>
