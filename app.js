@@ -68,7 +68,9 @@ function spendFp(n) {
 function buildRoll() {
   const skills = []; for (let n = 8; n >= -2; n--) skills.push(`<option value="${n}" ${n === 2 ? "selected" : ""}>${sgn(n)} ${ladName(n)}</option>`);
   $("#roll").innerHTML = `
-  <label>รูปแบบลูกเต๋า</label>
+  <label>เต๋าบนหน้าจอ (เห็นเมื่อมีคนทอด)</label>
+  <select id="scr"><option value="1">เปิด</option><option value="0">ปิด</option></select>
+  <label>รูปแบบลูกเต๋าในแผงนี้</label>
   <select id="dmode"><option value="2d">2D (แบน)</option><option value="3d">3D (ลูกบาศก์)</option></select>
   <label>แอ็กชัน</label>
   <select id="act">${Object.entries(ACT).map(([k, v]) => `<option value="${k}">${v.name} (${v.th})</option>`).join("")}</select>
@@ -92,7 +94,7 @@ function buildRoll() {
   <div class="odds" id="odds"></div>
   <button class="btn big" id="go">ทอด 4dF</button>
   <div id="last" style="margin-top:14px"></div>`;
-  $("#dmode").value = dmode; chips(); odds(); renderLast();
+  $("#dmode").value = dmode; try { $("#scr").value = localStorage.getItem(NS + "/screen") === "0" ? "0" : "1"; } catch (e) {} chips(); odds(); renderLast();
 }
 function chips() {
   $("#mchips").innerHTML = st.mods.map((m, i) => `<span class="chip ${m.v >= 0 ? "p" : "m"} ${m.on ? "" : "off"}" data-i="${i}">${esc(m.n)} ${sgn(m.v)}<i data-x="${i}">✕</i></span>`).join("");
@@ -232,6 +234,7 @@ function bind() {
     if (id === "lbl") st.label = e.target.value;
     if (id === "dmode") { dmode = e.target.value; try { localStorage.setItem(NS + "/dmode", dmode); } catch (e2) {} renderLast(); renderLog(); }
     if (id === "skill") st.skill = +e.target.value;
+    if (id === "scr") { try { localStorage.setItem(NS + "/screen", e.target.value); } catch (e3) {} }
     if (["opp", "free", "paid"].includes(id)) st[id] = e.target.value;
     odds();
   });
