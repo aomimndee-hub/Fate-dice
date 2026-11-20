@@ -11,8 +11,8 @@ canvas{position:fixed;inset:0}
 .die{position:absolute;width:var(--s);height:var(--s);margin:calc(var(--s)/-2) 0 0 calc(var(--s)/-2)}
 .tilt{width:100%;height:100%;transform-style:preserve-3d;transform:rotateX(-20deg) rotateY(24deg)}
 .cube{width:100%;height:100%;position:relative;transform-style:preserve-3d}
-.face{position:absolute;inset:0;display:grid;place-items:center;font-size:calc(var(--s)*.55);font-weight:800;border:3px solid;border-radius:calc(var(--s)*.16);background:#1c2133;backface-visibility:hidden}
-.p{color:#46d19b;border-color:#46d19b}.m{color:#f0697b;border-color:#f0697b}.z{color:#97a0b8;border-color:#5b6482}
+.face{position:absolute;inset:0;display:grid;place-items:center;font-size:calc(var(--s)*.55);font-weight:800;border:3px solid;border-radius:calc(var(--s)*.16);background:#eef0f8;backface-visibility:hidden}
+.p{color:#0f9d6a;border-color:#0f9d6a}.m{color:#d13a50;border-color:#d13a50}.z{color:#5d667f;border-color:#5d667f}
 .shadow{position:absolute;left:10%;width:80%;bottom:calc(var(--s)*-.3);height:calc(var(--s)*.18);background:rgba(0,0,0,.6);filter:blur(8px);border-radius:50%;opacity:0}
 </style></head>
 <body><div id="tag"><i id="dot"></i><span id="txt"></span></div>
@@ -36,13 +36,25 @@ function tagIn(delay) {
 }
 function fadeAll(els, delay) { if (!calm && !DBG) els.forEach(e => e.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 600, delay, fill: "forwards" })); }
 
+/* รอให้หน้าต่างเต็มจอขยายจนขนาดนิ่ง (ตอนโหลดใหม่ ๆ ขนาดอาจยังไม่ถูกต้อง) */
+async function stableSize() {
+  let lw = 0, lh = 0, ok = 0;
+  for (let i = 0; i < 40 && ok < 3; i++) {
+    await new Promise(r => setTimeout(r, 50));
+    const w = innerWidth, h = innerHeight;
+    ok = w > 200 && h > 200 && w === lw && h === lh ? ok + 1 : 0;
+    lw = w; lh = h;
+  }
+  return lw > 200 && lh > 200 ? [lw, lh] : [screen.width, screen.height];
+}
+
 /* ---------- เวอร์ชันสำรอง: CSS 3D ---------- */
-function cssDice() {
+async function cssDice() {
   const FACE_OF = { 1: ["front", "top"], "-1": ["back", "bottom"], 0: ["right", "left"] };
   const SHOW = { front: [0, 0], back: [0, -180], right: [0, -90], left: [0, 90], top: [-90, 0], bottom: [90, 0] };
   const FACE_T = { front: "rotateY(0deg)", back: "rotateY(180deg)", right: "rotateY(90deg)", left: "rotateY(-90deg)", top: "rotateX(90deg)", bottom: "rotateX(-90deg)" };
   const SYM = d => (d > 0 ? "+" : d < 0 ? "−" : "○"), CLS = d => (d > 0 ? "p" : d < 0 ? "m" : "z");
-  const W = innerWidth, H = innerHeight, n = dice.length;
+  const [W, H] = await stableSize(), n = dice.length;
   const S = Math.round(Math.min(Math.max(Math.min(W, H) * 0.13, 56), 110, W / (n * 1.75)));
   document.documentElement.style.setProperty("--s", S + "px");
   const stage = document.createElement("div"); stage.id = "stage"; document.body.prepend(stage);
@@ -75,7 +87,7 @@ function cssDice() {
 /* ---------- ฟิสิกส์จริง: three.js + cannon-es ---------- */
 async function run() {
   const [THREE, CANNON] = await Promise.all([import("three"), import("cannon-es")]);
-  const W = innerWidth, H = innerHeight, n = dice.length;
+  const [W, H] = await stableSize(), n = dice.length;
   if (!n) return;
   const S = Math.round(Math.min(Math.max(Math.min(W, H) * 0.1, 56), 100)); // ขนาดเต๋า (px)
   const hz = H / (2 * S), hx = W / (2 * S);                                // ครึ่งจอ หน่วย = 1 ลูกเต๋า
@@ -134,14 +146,14 @@ async function run() {
   /* three.js */
   const tex = (kind, col) => {
     const c = document.createElement("canvas"); c.width = c.height = 128;
-    const g = c.getContext("2d"); g.fillStyle = "#1c2133"; g.fillRect(0, 0, 128, 128);
+    const g = c.getContext("2d"); g.fillStyle = "#eef0f8"; g.fillRect(0, 0, 128, 128);
     g.strokeStyle = col; g.lineWidth = 10; g.strokeRect(5, 5, 118, 118); g.fillStyle = col;
     if (kind === 1) { g.fillRect(54, 24, 20, 80); g.fillRect(24, 54, 80, 20); }
     else if (kind === -1) g.fillRect(24, 54, 80, 20);
     else { g.lineWidth = 12; g.beginPath(); g.arc(64, 64, 34, 0, 6.2832); g.stroke(); }
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
   };
-  const M = { 1: "#46d19b", "-1": "#f0697b", 0: "#97a0b8" };
+  const M = { 1: "#0f9d6a", "-1": "#d13a50", 0: "#5d667f" };
   Object.keys(M).forEach(k => { M[k] = new THREE.MeshStandardMaterial({ map: tex(+k, M[k]), roughness: .4, metalness: .1 }); });
 
   const r = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -183,6 +195,6 @@ async function run() {
   } catch (e) { r.domElement.remove(); throw e; }
 }
 const note = t => { if (!DBG) return; const m = document.createElement("div"); m.style.cssText = "position:fixed;left:8px;bottom:8px;color:#fff;background:#0008;padding:4px 8px;font:12px monospace;z-index:9"; m.textContent = t; document.body.append(m); };
-run().then(() => note("dice.html v2: ฟิสิกส์ (three.js) ทำงาน")).catch(e => { console.warn("physics dice fallback:", e); note("dice.html v2: ฟิสิกส์ไม่ทำงาน ใช้ CSS แทน → " + e); cssDice(); });
+run().then(() => note(`dice.html v3: ฟิสิกส์ทำงาน (${innerWidth}x${innerHeight})`)).catch(e => { console.warn("physics dice fallback:", e); note("dice.html v3: ฟิสิกส์ไม่ทำงาน ใช้ CSS แทน → " + e); cssDice(); });
 </script>
 </body></html>
